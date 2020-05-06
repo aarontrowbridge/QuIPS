@@ -72,11 +72,11 @@ end
 
 (G::Gate)(ket::Vector{Complex{Float32}}) = begin
     n = Int(log(2, length(ket)));
-    tensor(G, n) * ket
+    return tensor(G, n) * ket
 end
 
 
-struct Measurement <: Operator
+mutable struct Measurement <: Operator
     pos::Int
     basis::NTuple{2, Vector{Complex{Float32}}}
     target::Int
@@ -88,23 +88,23 @@ end
 
 function(M::Measurement)(ket::Vector{Complex{Float32}})
     n = Int(log(2, length(ket)))
-    v1 = M.basis[1]
-    v2 = M.basis[2]
-    op1 = lift(v1 * v1', (M.target,), n)
+    β1 = M.basis[1]
+    β2 = M.basis[2]
+    op1 = lift(β1 * β1', (M.target,), n)
     if M.orthonormal
-        P1 = ket' * op1 * ket
+        P1 = sqrt(real(ket' * op1 * ket))
     else
-        P1 = ket' * op1' * op1 * ket
+        P1 = sqrt(real(ket' * op1' * op1 * ket))
     end
     u = rand(Float32)
     if u < P1
         M.outcome = false
-        return (1 / P1) * op1 * ket
+        return op1 * ket / P1
     else
-        op2 = lift(v2 * v2', (M.target,), n)
-        P2 = 1 - P1
+        op2 = lift(β2 * β2', (M.target,), n)
+        P2 = sqrt(1 - P1^2)
         M.outcome = true
-        return (1 / P2) * op2 * ket
+        return op2 * ket / P2
     end
 end
 
@@ -114,9 +114,9 @@ function tensor(G::Gate, n::Int)
     else
         j, k = G.target
         if j > k
-            return _P(k, j, n) * lift(G.op, G.target, n) * P_(j, k, n)
+            return P_(k, j, n) * lift(G.op, G.target, n) * P_(j, k, n)
         else
-            return P_(k, j, n) * lift(G.op, G.target, n) * _P(j, k, n)
+            return _P(k, j, n) * lift(G.op, G.target, n) * _P(j, k, n)
         end
     end
 end
@@ -125,12 +125,12 @@ P_(j, k, n) = *([lift(gates[:SWAP], (j+k-i-2, j+k-i-1), n) for i = k:j-2]...)
 _P(j, k, n) = lift(gates[:SWAP], (k-1, k), n) * P(j, k, n)
 
 lift(U::Matrix{Complex{Float32}}, q::Tuple{Vararg{Int}}, n::Int) = begin
-    L = nkron(gates[:I], n - maximum(q));
-    R = nkron(gates[:I], minimum(q) - 1);
+    L = nkron(gates[:I], minimum(q) - 1);
+    R = nkron(gates[:I], n - maximum(q));
     kron(kron(L, U), R)
 end
 
-nkron(M, n) = n == 1 ? M : nkron(kron(M, M), n - 1)
+nkron(M, n) = n < 1 ? 1 : kron(M, nkron(M, n - 1))
 
 
 
