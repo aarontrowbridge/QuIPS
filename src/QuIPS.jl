@@ -47,7 +47,6 @@ function run!(qvm::QVM)
     end
 end
 
-const Opr = Tuple{Symbol,Vararg{Int}}
 
 circuit = [(:H, 1),
            (:CNOT, 1, 2)]
@@ -55,7 +54,3 @@ circuit = [(:H, 1),
 QC = QVM(circuit, 2)
 
 run!(QC)
-
-
-println([op.name for op in QC.ops])
-
