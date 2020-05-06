@@ -65,6 +65,3 @@ QC = QVM(circuit, 2)
 run!(QC)
 println(QC.wfn)
 
-
-
-
