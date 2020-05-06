@@ -57,11 +57,16 @@ end
 
 circuit = [(:H, 1),
            (:CNOT, 1, 2),
-           (:MEASURE, 1)]
+           (:MEASURE, 1),
+           (:MEASURE, 2)]
 
 QC = QVM(circuit, 2)
 
 
-run!(QC)
-println(QC.wfn)
+for i = 1:10
+    run!(QC)
+    println(QC.out)
+    reset!(QC)
+end
+
 
