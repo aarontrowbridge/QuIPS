@@ -2,9 +2,11 @@
 
 module Operators
 
-export Operator, Gate, Measurement
+using LinearAlgebra
 
-const gates = Dict(:I => [1 0;
+export Operator, Gate, Measurement, nkron, GATES
+
+const GATES = Dict(:I => [1 0;
                           0 1],
 
                    :X => [0 1;
@@ -16,8 +18,14 @@ const gates = Dict(:I => [1 0;
                    :Z => [1 0;
                           0 -1],
 
-                   :H => 1/sqrt(2) * [1 1;
-                                      1 -1],
+                   :H => [1 1;
+                          1 -1] / sqrt(2),
+
+                   :S => [1 0;
+                          0 im],
+
+                   :T => [1 0;
+                          0 exp(im * π / 4)],
 
                    :CNOT => [1 0 0 0;
                              0 1 0 0;
@@ -30,109 +38,108 @@ const gates = Dict(:I => [1 0;
                              0 0 0 1]
                    )
 
-const param_gates = Dict(:RX => θ -> exp(im * θ * gates[:X]),
+const PARAM_GATES = Dict(:RX => θ -> exp(im * θ * GATES[:X]),
 
-                         :RY => θ -> exp(im * θ * gates[:Y]),
+                         :RY => θ -> exp(im * θ * GATES[:Y]),
 
-                         :RZ => θ -> exp(im * θ * gates[:Z]),
+                         :RZ => θ -> exp(im * θ * GATES[:Z]),
 
                          :PHASE => α -> [1 0; 0 exp(im * α)]
                          )
 
+const C = Complex{Float32}
+
+const BASIS = (C.([1, 0]), C.([0, 1]))
 
 abstract type Operator end
 
-struct Gate <: Operator
-    op::Matrix{Complex{Float32}}
-    pos::Int
-    name::Symbol
-    param::Union{Complex{Float32}, Nothing}
-    target::Tuple{Vararg{Int}}
-
-    Gate(opr::Tuple{Symbol,Int}, pos::Int) = begin
-        name, q = opr;
-        new(gates[name], pos, name, nothing, (q,))
-    end
-
-    Gate(opr::Tuple{Symbol,Int,Int}, pos::Int) = begin
-        name, q1, q2 = opr;
-        new(gates[name], pos, name, nothing, (q1, q2))
-    end
-
-    Gate(opr::Tuple{Symbol,Complex{Float32},Int}, pos::Int) = begin
-        ((name, p, q), pos) = opr;
-        new(param_gates[name](p), pos, name, p, (q,))
-    end
-
-    Gate(opr::Tuple{Symbol,Complex{Float32},Int,Int}, pos::Int) = begin
-        ((name, p, q1, q2), pos) = opr;
-        new(param_gates[name](p), pos, name, p, (q1, q2))
-    end
-end
-
-(G::Gate)(ket::Vector{Complex{Float32}}) = begin
-    n = Int(log(2, length(ket)));
-    return tensor(G, n) * ket
-end
-
-
 mutable struct Measurement <: Operator
-    pos::Int
-    basis::NTuple{2, Vector{Complex{Float32}}}
-    target::Int
-    outcome::Union{Bool, Nothing}
-    orthonormal::Bool
+    k::Int
+    loc::Int
+    basis::NTuple{2, Vector{C}}
 
-    Measurement(target, pos) = new(pos, ([1,0],[0,1]), target, nothing, true)
+    Measurement(k::Int, loc::Int, basis=BASIS) = new(k, loc, basis)
+    Measurement(k::Int, basis=BASIS) = new(k, 0, basis)
 end
 
-function(M::Measurement)(ket::Vector{Complex{Float32}})
-    n = Int(log(2, length(ket)))
-    β1 = M.basis[1]
-    β2 = M.basis[2]
-    op1 = lift(β1 * β1', (M.target,), n)
-    if M.orthonormal
-        P1 = sqrt(real(ket' * op1 * ket))
-    else
-        P1 = sqrt(real(ket' * op1' * op1 * ket))
-    end
+function (M::Measurement)(ψ::Vector{C}, N::Int)
+    β₁ = M.basis[1]
+    M₁ = β₁ * β₁'
+    M̃₁ = lift(M₁, M.k, N)
+    P₁ = real(ψ' * M̃₁ * ψ)
     u = rand(Float32)
-    if u < P1
-        M.outcome = false
-        return op1 * ket / P1
+    if u < P₁
+        p = sqrt(P₁)
+        return (M̃₁ / p * ψ, 0)
     else
-        op2 = lift(β2 * β2', (M.target,), n)
-        P2 = sqrt(1 - P1^2)
-        M.outcome = true
-        return op2 * ket / P2
+        β₂ = M.basis[2]
+        M₂ = β₂ * β₂'
+        M̃₂ = lift(M₂, M.k, N)
+        p = sqrt(1 - P₁)
+        return (M̃₂ / p * ψ, 1)
     end
 end
 
-function tensor(G::Gate, n::Int)
-    if length(G.target) == 1 || abs(G.target[2] - G.target[1]) == 1
-        return lift(G.op, G.target, n)
+struct Gate <: Operator
+    k::Tuple{Vararg{Int}}
+    rep::Matrix{C}
+    loc::Int
+    name::Symbol
+    param::Union{C, Nothing}
+
+    Gate(tag::Tuple{Symbol,Int}, loc::Int) = begin
+        name, q = tag;
+        new((q,), GATES[name], loc, name, nothing)
+    end
+
+    Gate(tag::Tuple{Symbol,Int,Int}, loc::Int) = begin
+        name, q1, q2 = tag;
+        new((q1, q2), GATES[name], loc, name, nothing)
+    end
+
+    Gate(tag::Tuple{Symbol,C,Int}, loc::Int) = begin
+        name, p, q = tag;
+        new((q,), PARAM_GATES[name](p), loc, name, p)
+    end
+
+    Gate(tag::Tuple{Symbol,C,Int,Int}, loc::Int) = begin
+        name, p, q1, q2 = tag;
+        new((q1, q2), PARAM_GATES[name](p), loc, name, p)
+    end
+end
+
+(G::Gate)(ψ::Vector{C}, N::Int) = tensor(G.rep, G.k, N) * ψ
+
+function tensor(U::Matrix{C}, ktup::Tuple{Vararg{Int}}, N::Int)
+    if length(ktup) == 1
+        k, = ktup
+        Ũ = lift(U, k, N)
+        return Ũ
     else
-        j, k = G.target
+        j, k = ktup
         if j > k
-            return P_(k, j, n) * lift(G.op, G.target, n) * P_(j, k, n)
+            Ũ = lift(U, j, N)
+            return σ(k, j, N) * Ũ * σ(j, k, N)
         else
-            return _P(k, j, n) * lift(G.op, G.target, n) * _P(j, k, n)
+            Ũ = lift(U, k, N)
+            return σ′(k, j, N) * Ũ * σ'(j, k, N)
         end
     end
 end
 
-P_(j, k, n) = *([lift(gates[:SWAP], (j+k-i-2, j+k-i-1), n) for i = k:j-2]...)
-_P(j, k, n) = lift(gates[:SWAP], (k-1, k), n) * P(j, k, n)
-
-lift(U::Matrix{Complex{Float32}}, q::Tuple{Vararg{Int}}, n::Int) = begin
-    L = nkron(gates[:I], minimum(q) - 1);
-    R = nkron(gates[:I], n - maximum(q));
-    kron(kron(L, U), R)
+function lift(U::Matrix, k::Int, N::Int)
+    n = Int(log(2, size(U, 1)))
+    L = diagm(ones(C, 2^(k - n)))
+    R = diagm(ones(C, 2^(N - k)))
+    kron(kron(L, C.(U)), R)
 end
 
-nkron(M, n) = n < 1 ? 1 : kron(M, nkron(M, n - 1))
+τ(i, N) = lift(GATES[:SWAP], i, N)
 
+σ(j, k, N) = k < j-1 ? *([τ(j+k-i-2, N) for i = k:j-2]...) : C(1)
 
+σ′(j, k, N) = τ(k-1, N) * π(k, j, N)
 
+nkron(rep, n) = n < 1 ? 1 : kron(rep, nkron(rep, n-1))
 
 end
