@@ -4,7 +4,7 @@ module Operators
 
 using LinearAlgebra
 
-export Operator, Gate, Measurement, nkron, GATES
+export Operator, Gate, Measurement, GATES, PARAM_GATES
 
 const GATES = Dict(:I => [1 0;
                           0 1],
@@ -55,17 +55,15 @@ abstract type Operator end
 
 mutable struct Measurement <: Operator
     k::Int
-    loc::Int
     basis::NTuple{2, Vector{C}}
 
-    Measurement(k::Int, loc::Int, basis=BASIS) = new(k, loc, basis)
-    Measurement(k::Int, basis=BASIS) = new(k, 0, basis)
+    Measurement(k::Int, basis=BASIS) = new(k, basis)
 end
 
 function (M::Measurement)(ψ::Vector{C}, N::Int)
     β₁ = M.basis[1]
     M₁ = β₁ * β₁'
-    M̃₁ = lift(M₁, M.k, N)
+    M̃₁ = tensor(M₁, M.k, N)
     P₁ = real(ψ' * M̃₁ * ψ)
     u = rand(Float32)
     if u < P₁
@@ -74,7 +72,7 @@ function (M::Measurement)(ψ::Vector{C}, N::Int)
     else
         β₂ = M.basis[2]
         M₂ = β₂ * β₂'
-        M̃₂ = lift(M₂, M.k, N)
+        M̃₂ = tensor(M₂, M.k, N)
         p = sqrt(1 - P₁)
         return (M̃₂ / p * ψ, 1)
     end
@@ -83,63 +81,82 @@ end
 struct Gate <: Operator
     k::Tuple{Vararg{Int}}
     rep::Matrix{C}
-    loc::Int
     name::Symbol
     param::Union{C, Nothing}
 
-    Gate(tag::Tuple{Symbol,Int}, loc::Int) = begin
+    Gate(tag::Tuple{Symbol,Int}) = begin
         name, q = tag;
-        new((q,), GATES[name], loc, name, nothing)
+        new((q,), GATES[name], name, nothing)
     end
 
-    Gate(tag::Tuple{Symbol,Int,Int}, loc::Int) = begin
+    Gate(tag::Tuple{Symbol,Int,Int}) = begin
         name, q1, q2 = tag;
-        new((q1, q2), GATES[name], loc, name, nothing)
+        new((q1, q2), GATES[name], name, nothing)
     end
 
-    Gate(tag::Tuple{Symbol,C,Int}, loc::Int) = begin
+    Gate(tag::Tuple{Symbol,C,Int}) = begin
         name, p, q = tag;
-        new((q,), PARAM_GATES[name](p), loc, name, p)
+        new((q,), PARAM_GATES[name](p), name, p)
     end
 
-    Gate(tag::Tuple{Symbol,C,Int,Int}, loc::Int) = begin
+    Gate(tag::Tuple{Symbol,C,Int,Int}) = begin
         name, p, q1, q2 = tag;
-        new((q1, q2), PARAM_GATES[name](p), loc, name, p)
+        new((q1, q2), PARAM_GATES[name](p), name, p)
     end
 end
 
 (G::Gate)(ψ::Vector{C}, N::Int) = tensor(G.rep, G.k, N) * ψ
 
+# tensor the matrix U of order n up to order N,
+# where U acts on qubits: j, j + 1,... k; j < k
+#
+# and |ψ₀> = |0>₁ ⊗ |0>₂ ⊗ ... ⊗ |0>ₙ
+#
+# for example, with 2 qubits in Q₁ ⊗ Q₂, let's entangle them:
+#
+# let U₁ = CX(2, 1)
+#        = σ(2, 1)CX(1, 2)σ(1, 2)
+#
+#     U₁(|00> + |10>) = 
+#
 function tensor(U::Matrix{C}, ktup::Tuple{Vararg{Int}}, N::Int)
     if length(ktup) == 1
         k, = ktup
-        Ũ = lift(U, k, N)
+        Ũ = tensor(U, k, N)
         return Ũ
     else
         j, k = ktup
         if j > k
-            Ũ = lift(U, j, N)
+            # Qₖ ⊗ Qⱼ -> Qⱼ ⊗ Q(j + 1)
+            Ũ = tensor(U, j - 1, N)
             return σ(k, j, N) * Ũ * σ(j, k, N)
         else
-            Ũ = lift(U, k, N)
-            return σ′(k, j, N) * Ũ * σ'(j, k, N)
+            # Qⱼ ⊗ Qₖ -> Q(k - 1) ⊗ Qₖ
+            Ũ = tensor(U, k - 1, N)
+            return σ′(k, j, N) * Ũ * σ′(j, k, N)
         end
     end
 end
 
-function lift(U::Matrix, k::Int, N::Int)
+# Uₖ -> I₁ ⊗ ... ⊗ I(k - 1 times) ⊗ ... ⊗ I(k - 1)
+#       ⊗ Uₖ ⊗ I(k + n - 1) ⊗ ... ⊗ I(N - k - n + 1 times) ⊗ ... ⊗ I(N)
+#
+function tensor(U::Matrix{C}, k::Int, N::Int)
     n = Int(log(2, size(U, 1)))
-    L = diagm(ones(C, 2^(k - n)))
-    R = diagm(ones(C, 2^(N - k)))
-    kron(kron(L, C.(U)), R)
+    L = diagm(ones(C, 2^(k - 1)))
+    R = diagm(ones(C, 2^(N - k - n + 1)))
+    L ⊗ C.(U) ⊗ R
 end
 
-τ(i, N) = lift(GATES[:SWAP], i, N)
+# Qᵢ -> Q[i + 1]
+τ(i, N) = tensor(C.(GATES[:SWAP]), i, N)
 
-σ(j, k, N) = k < j-1 ? *([τ(j+k-i-2, N) for i = k:j-2]...) : C(1)
+# j > k => Qₖ -> Qⱼ
+σ(j, k, N) = k < j ? *([τ(k + j - i - 1, N) for i = k:j-1]...) : C(1)
 
-σ′(j, k, N) = τ(k-1, N) * π(k, j, N)
+# j < k => Qⱼ -> Q(k - 1)
+σ′(j, k, N) = σ(k - 1, j, N)
 
-nkron(rep, n) = n < 1 ? 1 : kron(rep, nkron(rep, n-1))
+⊗(x, y) = kron(x, y)
 
 end
