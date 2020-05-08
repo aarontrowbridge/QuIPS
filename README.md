@@ -37,7 +37,7 @@ The goal for the future is to use macros to read in a quip in a less noisy forma
 * macros
 * visualisations
 * algorithms 
-** Teleportation
-** QFFT
-** Ising
+  * Teleportation
+  * QFFT
+  * Ising
 
