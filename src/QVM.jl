@@ -6,9 +6,11 @@ export Circuit, run!, step!, reset!
 
 using Operators
 
+const C = Complex{Float32}
+
 mutable struct Circuit
     N::Int
-    wfn::Vector{Complex{Float32}}
+    wfn::Vector{C}
     ops::Vector{Operator}
     out::BitVector
     pos::Int
@@ -35,6 +37,7 @@ end
 
 function run!(cirq::Circuit)
     for opr in cirq.ops
+        cirq.pos += 1
         if typeof(opr) == Measurement
             ψ, outcome = opr(cirq.wfn, cirq.N)
             cirq.out[opr.k] = outcome
@@ -43,7 +46,6 @@ function run!(cirq::Circuit)
             ψ = opr(cirq.wfn, cirq.N)
             cirq.wfn .= ψ
         end
-        cirq.pos += 1
     end
 end
 
@@ -63,8 +65,7 @@ function step!(cirq::Circuit)
 end
 
 function reset!(cirq::Circuit)
-    d = length(cirq.wfn)
-    cirq.wfn = zeros(Float32, d); cirq.wfn[1] = 1
+    cirq.wfn = zero.(cirq.wfn); cirq.wfn[1] = 1
     cirq.out = BitVector(undef, cirq.N)
     cirq.pos = 0
 end

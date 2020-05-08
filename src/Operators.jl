@@ -4,7 +4,7 @@ module Operators
 
 using LinearAlgebra
 
-export Operator, Gate, Measurement, GATES, PARAM_GATES
+export Operator, Gate, Measurement, GATES, PGATES
 
 const GATES = Dict(:I => [1 0;
                           0 1],
@@ -35,21 +35,19 @@ const GATES = Dict(:I => [1 0;
                    :SWAP => [1 0 0 0;
                              0 0 1 0;
                              0 1 0 0;
-                             0 0 0 1]
-                   )
+                             0 0 0 1])
 
-const PARAM_GATES = Dict(:RX => θ -> exp(im * θ * GATES[:X]),
+const PGATES = Dict(:RX => γ -> exp(im * γ * GATES[:X]),
 
-                         :RY => θ -> exp(im * θ * GATES[:Y]),
+                    :RY => β -> exp(im * β * GATES[:Y]),
 
-                         :RZ => θ -> exp(im * θ * GATES[:Z]),
+                    :RZ => α -> exp(im * α * GATES[:Z]),
 
-                         :PHASE => α -> [1 0; 0 exp(im * α)]
-                         )
+                    :PHASE => θ -> [1 0; 0 exp(im * θ)])
+
+const BASIS = ([1, 0], [0, 1])
 
 const C = Complex{Float32}
-
-const BASIS = (C.([1, 0]), C.([0, 1]))
 
 abstract type Operator end
 
@@ -61,63 +59,57 @@ mutable struct Measurement <: Operator
 end
 
 function (M::Measurement)(ψ::Vector{C}, N::Int)
+    k = M.k
     β₁ = M.basis[1]
-    M₁ = β₁ * β₁'
-    M̃₁ = tensor(M₁, M.k, N)
-    P₁ = real(ψ' * M̃₁ * ψ)
+    M₁ = C.(β₁ * β₁')
+    M̃₁ = tensor(M₁, k, N)
+    P₁ = abs(ψ' * M̃₁ * ψ)
     u = rand(Float32)
     if u < P₁
         p = sqrt(P₁)
-        return (M̃₁ / p * ψ, 0)
+        return M̃₁/p * ψ, 0
     else
         β₂ = M.basis[2]
-        M₂ = β₂ * β₂'
+        M₂ = C.(β₂ * β₂')
         M̃₂ = tensor(M₂, M.k, N)
         p = sqrt(1 - P₁)
-        return (M̃₂ / p * ψ, 1)
+        return M̃₂/p * ψ, 1
     end
 end
 
 struct Gate <: Operator
-    k::Tuple{Vararg{Int}}
-    rep::Matrix{C}
     name::Symbol
-    param::Union{C, Nothing}
+    p::Union{Float32, Nothing}
+    k::Tuple{Vararg{Int}}
+    U::Matrix{C}
 
-    Gate(tag::Tuple{Symbol,Int}) = begin
-        name, q = tag;
-        new((q,), GATES[name], name, nothing)
-    end
+    Gate(gate::Tuple{Symbol,Int}) = new(gate[1],
+                                        nothing,
+                                        (gate[2],),
+                                        GATES[gate[1]])
 
-    Gate(tag::Tuple{Symbol,Int,Int}) = begin
-        name, q1, q2 = tag;
-        new((q1, q2), GATES[name], name, nothing)
-    end
+    Gate(gate::Tuple{Symbol,Int,Int}) = new(gate[1],
+                                            nothing,
+                                            (gate[2], gate[3]),
+                                            GATES[gate[1]])
 
-    Gate(tag::Tuple{Symbol,C,Int}) = begin
-        name, p, q = tag;
-        new((q,), PARAM_GATES[name](p), name, p)
-    end
+    Gate(gate::Tuple{Symbol,Float32,Int}) = new(gate[1],
+                                                gate[2],
+                                                (gate[3],),
+                                                PGATES[gate[1]](gate[2]))
 
-    Gate(tag::Tuple{Symbol,C,Int,Int}) = begin
-        name, p, q1, q2 = tag;
-        new((q1, q2), PARAM_GATES[name](p), name, p)
-    end
+    Gate(gate::Tuple{Symbol,Float32,Int,Int}) = new(gate[1],
+                                                    gate[2],
+                                                    (gate[3], gate[4]),
+                                                    PGATES[gate[1]](gate[2]))
 end
 
-(G::Gate)(ψ::Vector{C}, N::Int) = tensor(G.rep, G.k, N) * ψ
+(G::Gate)(ψ::Vector{C}, N::Int) = tensor(G.U, G.k, N) * ψ
 
 # tensor the matrix U of order n up to order N,
 # where U acts on qubits: j, j + 1,... k; j < k
 #
 # and |ψ₀> = |0>₁ ⊗ |0>₂ ⊗ ... ⊗ |0>ₙ
-#
-# for example, with 2 qubits in Q₁ ⊗ Q₂, let's entangle them:
-#
-# let U₁ = CX(2, 1)
-#        = σ(2, 1)CX(1, 2)σ(1, 2)
-#
-#     U₁(|00> + |10>) = 
 #
 function tensor(U::Matrix{C}, ktup::Tuple{Vararg{Int}}, N::Int)
     if length(ktup) == 1
@@ -145,7 +137,7 @@ function tensor(U::Matrix{C}, k::Int, N::Int)
     n = Int(log(2, size(U, 1)))
     L = diagm(ones(C, 2^(k - 1)))
     R = diagm(ones(C, 2^(N - k - n + 1)))
-    L ⊗ C.(U) ⊗ R
+    L ⊗ U ⊗ R
 end
 
 # Qᵢ -> Q[i + 1]

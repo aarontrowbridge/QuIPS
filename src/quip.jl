@@ -11,7 +11,7 @@ M₁ = Measurement(1)
 # quip = [
 #     (:H, 1)
 # ]
-# cirq = Circuit(superpose, 1)
+# cirq = Circuit(quip, 1)
 # run!(cirq)
 # println(abs.(cirq.wfn))
 # ψ, out = M₁(cirq.wfn, cirq.N)
@@ -23,7 +23,7 @@ quip = [
     (:MEASURE, 1),
     (:MEASURE, 2)
 ]
-cirq = Circuit(entangle, 2)
+cirq = Circuit(quip, 2)
 for i = 1:10
     run!(cirq)
     println(cirq.out)
