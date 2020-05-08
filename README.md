@@ -39,4 +39,6 @@ The goal for the future is to use macros to read in a quip in a less noisy forma
   * teleportation
   * QFFT
   * ising
+* density matrix
+* artificial noise
 
