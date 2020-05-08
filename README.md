@@ -14,7 +14,7 @@ Julia is being used because it is better then whatever language you want to comp
 
 ## Usage
 
-A quantum compuatation begins with specifying a list of successive gates and measurements.  We shall call this quantum information process a *quip*. Additionally, the number of qubits, *N* must be specified. 
+A quantum compuatation begins with specifying a list of successive gates and measurements.  We shall call this quantum information program, or process, or whatever, a *quip*. Additionally, the number of qubits, *N* must be specified. 
 
 As an example of what a *quip* currently looks like, here is a Julia vector containing the instructions to put 2 qubits into an entangled Bell singlet state and measure them, the results should be correlated.
 
@@ -36,7 +36,7 @@ The goal for the future is to use macros to read in a quip in a less noisy forma
 * macros
 * visualisations
 * algorithms 
-  * Teleportation
+  * teleportation
   * QFFT
-  * Ising
+  * ising
 
