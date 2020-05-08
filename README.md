@@ -28,7 +28,7 @@ quip = [
 ]
 ```
 
-A *quip* is currently formatted as a Julia vector of tuples, where each tuple contains a symbol specifying the desired operation, optionally a parameter for parameterized gates and finally the index(es) of the targeted qubit(s). 
+A *quip* is currently formatted as a Julia vector of tuples, where each tuple contains a symbol specifying the desired operation, optionally a parameter for parameterized gates and finally the index(es) of the targeted qubit(s**. 
 
 The goal for the future is to use macros to read in a quip in a less noisy format.
 ## To-Do
@@ -37,4 +37,7 @@ The goal for the future is to use macros to read in a quip in a less noisy forma
 * macros
 * visualisations
 * algorithms 
+** Teleportation
+** QFFT
+** Ising
 
