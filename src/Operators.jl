@@ -37,11 +37,11 @@ const GATES = Dict(:I => [1 0;
 
 const PARAM_GATES = Dict(:RX => γ -> exp(im * γ * GATES[:X]),
 
-                    :RY => β -> exp(im * β * GATES[:Y]),
+                         :RY => β -> exp(im * β * GATES[:Y]),
 
-                    :RZ => α -> exp(im * α * GATES[:Z]),
+                         :RZ => α -> exp(im * α * GATES[:Z]),
 
-                    :PHASE => θ -> [1 0; 0 exp(im * θ)])
+                         :PHASE => θ -> [1 0; 0 exp(im * θ)])
 
 
 const COMP_BASIS = ([1, 0],
@@ -55,6 +55,7 @@ end
 const COMP_PROJS = projectors(COMP_BASIS)
 
 const C = Complex{Float32}
+
 
 #
 #
@@ -144,10 +145,10 @@ struct Control <: Operator
     end
 end
 
-function (C::Control)(ψ::Vector{C}, N::Int)
-    controls = length(filter!(l -> l == 'C',[String(C.name)...]))
+function (CG::Control)(ψ::Vector{C}, N::Int)
+    controls = length(filter!(l -> l == 'C',[String(CG.name)...]))
     I = GATES[:I]
-    U = C.gate.U
+    U = CG.gate.U
     P₀ = COMP_PROJS[1]
     P₁ = COMP_PROJS[4]
     V = P₀ ⊗ I + P₁ ⊗ U
@@ -157,7 +158,7 @@ function (C::Control)(ψ::Vector{C}, N::Int)
             V = P₀ ⊗ I′ + P₁ ⊗ V
         end
     end
-    tensor(V, C.indx, N) * ψ
+    tensor(V, CG.indx, N) * ψ
 end
 
 ⊗(x, y)= kron(x, y)
