@@ -41,7 +41,7 @@ random_quip = [
 ]
 ```
 
-Once we have our *quip* specified, we need to compile it into a Quantum Circuit, for QVM to work with.  Here we will just run the quantum computer and that looks like this.
+Once we have our *quip* specified, we need to compile it, and the number of qubits we want to work with, into a Quantum Circuit, for our QVM to work with.  Here we will just run the quantum computer and that looks like this.
 
 ```julia
 QC = QCircuit(quip, 2)
