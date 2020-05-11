@@ -30,7 +30,7 @@ Here, `:CX = :CNOT`, both are allowed, but I prefer `:CX` as it flows with the n
 A *quip* is currently formatted as a Julia vector of tuples, where each tuple contains a symbol specifying the desired operation, optionally a parameter for parameterized gates and finally the index(es) of the targeted qubit(s), just the index or an array of of indices for multi qubit gates.
 
 ```julia
-quip = [
+random_quip = [
     (:RX, 3.14, 1),
     (:Y, 2),
     (:CCZ, (3, 2, 4)),
@@ -44,7 +44,7 @@ quip = [
 Once we have our *quip* specified, we need to compile it into a Quantum Circuit, for QVM to work with.  Here we will just run the quantum computer and that looks like this.
 
 ```julia
-QC = QCircuit(quip, 4)
+QC = QCircuit(quip, 2)
 run!(QC)
 ```
 
