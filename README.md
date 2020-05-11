@@ -49,15 +49,19 @@ The ultimate goal for the future is to use macros to read in a quip in a less no
 
 ## To-Do
 
+### general
+* jupyter lab 
+* google colab
+
 ### syntax
 * macros
 * visualisations
 * run! functionality
 
 ### algorithms 
-* teleportation
-* QFFT
 * ising
+* QFFT
+* schur transform
 
 ### formalisms
 * density operator
@@ -65,8 +69,8 @@ The ultimate goal for the future is to use macros to read in a quip in a less no
 * path integral
   
 ### optimizations
+* GPU
 * graph state
 * clifford group
-* GPU
 
 
