@@ -28,6 +28,8 @@ function compile(quip::Vector)
     for tag in quip
         if tag[1] == :MEASURE
             push!(Vs, Measurement(tag[2]))
+        elseif String(tag[1])[1] == 'C'
+            push!(Vs, Control(tag))
         else
             push!(Vs, Gate(tag))
         end
