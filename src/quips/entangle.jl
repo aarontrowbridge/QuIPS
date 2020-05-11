@@ -9,7 +9,7 @@ quip = [
     (:MEASURE, 2)
 ]
 
-QC = Circuit(quip, 2)
+QC = QCircuit(quip, 2)
 
 for i = 1:5
     run!(QC)

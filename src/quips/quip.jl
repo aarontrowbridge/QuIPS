@@ -13,7 +13,7 @@ quip = [
     (:H, 1)
 ]
 
-QC = Circuit(quip, 1)
+QC = QCircuit(quip, 1)
 
 run!(QC)
 

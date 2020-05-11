@@ -82,7 +82,7 @@ const SWAP = [1 0 0 0;
 τ(i, N) = tensor(C.(SWAP), i + 1, N)
 
 # k < j => Q(k) -> Q(j)
-σ(j, k, N) =  begin
+σ(j, k, N) = begin
     τs = [τ(k + j - i - 1, N) for i = k:j-1];
     reverse_τs = reverse(τs);
     k < j ? (*(τs...), *(reverse_τs...)) : (C(1), C(1))

@@ -7,12 +7,12 @@ module QuIPS
 
 using QVM
 
-export Circuit, run!, step!, operate!, reset!
+export QCircuit, run!, step!, reset!, operate!
 
 
 using Operators
 
-export Operator, Gate, Measurement, tensor, GATES, PARAM_GATES
+export Operator, Gate, Control, Measurement
 
 
 end

@@ -6,8 +6,6 @@ module Operators
 using LinearAlgebra, Tensor
 
 export Operator, Gate, Control, Measurement
-export GATES, PARAM_GATES
-export COMP_BASIS, COMP_PROJS
 
 
 const GATES = Dict(:I => [1 0;
@@ -70,10 +68,11 @@ abstract type Operator end
 #
 
 struct Measurement <: Operator
-    k::Int
+    name::Symbol
     basis::NTuple{2, Vector{C}}
+    k::Int
 
-    Measurement(k::Int, basis=COMP_BASIS) = new(k, basis)
+    Measurement(k::Int, β=COMP_BASIS) = new(Symbol("M"), β, k)
 end
 
 function (M::Measurement)(ψ::Vector{C}, N::Int)
