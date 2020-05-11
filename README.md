@@ -10,8 +10,6 @@ We can interpret this as,
 
 That motto will be the starting point of this project; modeling a quantum computer as a sequence of gate operations on an initital tensor product state of *N* Qubits.
 
-Julia is being used because it is better then whatever language you want to compare it to. 
-
 ## Usage
 
 A quantum compuatation begins with specifying a list of successive gates and measurements.  We shall call this quantum information program, or process, or whatever, a *quip*. Additionally, the number of qubits, *N* must be specified. 
@@ -35,7 +33,7 @@ A *quip* is currently formatted as a Julia vector of tuples, where each tuple co
 quip = [
     (:RX, 3.14, 1),
     (:Y, 2),
-    (:CCZ, (3, 2, 1)),
+    (:CCZ, (3, 2, 4)),
     (:H, 1),
     (:CY, (3, 2))
     (:CCH, (2, 1, 3))
@@ -43,9 +41,14 @@ quip = [
 ]
 ```
 
-I am fooling around with gates at this point so lets start to think about some other angles to attack.
+Once we have our *quip* specified, we need to compile it into a Quantum Circuit, for QVM to work with.  Here we will just run the quantum computer and that looks like this.
 
-The ultimate goal for the future is to use macros to read in a quip in a less noisy format.
+```julia
+QC = QCircuit(quip, 4)
+run!(QC)
+```
+
+We can then access information stored in `QC` like `QC.wfn`.
 
 ## To-Do
 
@@ -71,6 +74,7 @@ The ultimate goal for the future is to use macros to read in a quip in a less no
 ### optimizations
 * GPU
 * graph state
+  * Gottesman-Knill theorem
 * clifford group
 
 
