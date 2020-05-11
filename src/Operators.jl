@@ -111,10 +111,12 @@ end
 
 (G::Gate)(ψ::Vector{C}, N::Int) = tensor(G.U, G.k, N) * ψ
 
-# struct Control <: Operator
-#     name::Symbol
-#     ktup::Tuple{Vararg{Int}}
-#     gate::Gate
+struct Control <: Operator
+    name::Symbol
+    ktup::Tuple{Vararg{Int}}
+    gate::Gate
+end
+
 
 
 
