@@ -23,7 +23,7 @@ mutable struct QCircuit
     end
 end
 
-function compile(quip::Vector)
+function compile(quip::Vector, verbose=true)
     println("\ncompiling quip to circuit\n")
     Vs = []
     for tag in quip
@@ -34,9 +34,16 @@ function compile(quip::Vector)
         else
             push!(Vs, Gate(tag))
         end
+        if verbose
+            if typeof(Vs[end]) == Control
+                println("  compiling ", Vs[end].name, " ", Vs[end].indx...)
+            else
+                println("  compiling ", Vs[end].name, " ", Vs[end].k)
+            end
+        end
     end
-    Vs
     println("compiled\n")
+    Vs
 end
 
 function run!(QC::QCircuit, verbose=true)
@@ -47,7 +54,7 @@ function run!(QC::QCircuit, verbose=true)
         QC.pos += 1
         evolve!(QC, V)
         if verbose
-            if typeof(V) == QControl
+            if typeof(V) == Control
                 println(V.name, " ", V.indx...)
             else
                 println(V.name, " ", V.k)

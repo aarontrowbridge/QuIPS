@@ -16,9 +16,9 @@ export tensor
 
 const C = Complex{Float32}
 
-function tensor(V::Matrix{C}, indx::Vector{Int}, N::Int)
+function tensor(V::Matrix{C}, indx::Tuple{Vararg{Int}}, N::Int)
     if length(indx) == 2
-        j, k = indx[1], indx[2]
+        j, k = indx
         if j > k
             # Qₖ ⊗ Qⱼ -> Qⱼ ⊗ Q(j - 1)
             Ṽ = tensor(V, j, N)
@@ -30,7 +30,7 @@ function tensor(V::Matrix{C}, indx::Vector{Int}, N::Int)
         end
         return B * Ṽ * F
     else
-        i, j, k = indx[1], indx[2], indx[3]
+        i, j, k = indx
         if i > j && j > k
             Ṽ = tensor(V, i, N)
             F₁, B₁ = σ(i, k, N)

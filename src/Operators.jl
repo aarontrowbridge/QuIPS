@@ -42,15 +42,9 @@ const PARAM_GATES = Dict(:RX => γ -> exp(im * γ * GATES[:X]),
                          :PHASE => θ -> [1 0; 0 exp(im * θ)])
 
 
-const COMP_BASIS = ([1, 0],
-                    [0, 1])
+const BASIS = ([1, 0],
+               [0, 1])
 
-projectors(β::NTuple{2, Vector}) = begin
-    β₀, β₁ = β;
-    [β₀*β₀', β₁*β₀', β₀*β₁', β₁*β₁']
-end
-
-const COMP_PROJS = projectors(COMP_BASIS)
 
 const C = Complex{Float32}
 
@@ -72,7 +66,7 @@ struct Measurement <: Operator
     basis::NTuple{2, Vector{C}}
     k::Int
 
-    Measurement(k::Int, β=COMP_BASIS) = new(Symbol("M"), β, k)
+    Measurement(k::Int, β=BASIS) = new(Symbol("M"), β, k)
 end
 
 function (M::Measurement)(ψ::Vector{C}, N::Int)
@@ -148,8 +142,8 @@ function (CG::Control)(ψ::Vector{C}, N::Int)
     Cnum = length(filter!(l -> l == 'C',[String(CG.name)...]))
     I = GATES[:I]
     U = CG.gate.U
-    P₀ = COMP_PROJS[1]
-    P₁ = COMP_PROJS[4]
+    P₀ = BASIS[1] * BASIS[1]'
+    P₁ = BASIS[2] * BASIS[2]'
     V = P₀ ⊗ I + P₁ ⊗ U
     if Cnum > 1
         for i = 2:Cnum
