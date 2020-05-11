@@ -38,6 +38,7 @@ H = GATES[:H]
 operate!(QC, X̂(3)^M₂)
 operate!(QC, Ẑ(3)^M₁)
 
+println("QC.wfn:")
 for d in QC.wfn println(d) end
 
 println()
@@ -46,8 +47,13 @@ println()
 
 ψ′ = (X^M₁ * [1,0]) ⊗ (X^M₂ * [1,0]) ⊗ (H * X * [1,0])
 
-for d in ψ′ println(d) end
+const C = Complex{Float32}
 
+println("ψ′:")
+for d in C.(ψ′) println(d) end
+
+println()
+println(" QC.wfn == ψ′ : ", isapprox(QC.wfn, C.(ψ′)))
 println()
 
 
