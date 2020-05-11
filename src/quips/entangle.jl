@@ -22,7 +22,7 @@ println()
 N = 1000
 gs = 0
 for i = 1:N
-    run!(QC)
+    run!(QC, false)
     if QC.out[1] == 1
         global gs += 1
     end

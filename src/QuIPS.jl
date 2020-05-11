@@ -13,6 +13,7 @@ export QCircuit, run!, step!, reset!, operate!
 using Operators
 
 export Operator, Gate, Control, Measurement
+export GATES, PARAM_GATES
 
 
 end

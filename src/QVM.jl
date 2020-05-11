@@ -27,7 +27,7 @@ function compile(quip::Vector, verbose=true)
     println("\ncompiling quip to circuit\n")
     Vs = []
     for tag in quip
-        if tag[1] == :MEASURE
+        if tag[1] == :MEASURE || tag[1] == :M
             push!(Vs, Measurement(tag[2]))
         elseif String(tag[1])[1] == 'C'
             push!(Vs, Control(tag))
@@ -35,14 +35,17 @@ function compile(quip::Vector, verbose=true)
             push!(Vs, Gate(tag))
         end
         if verbose
-            if typeof(Vs[end]) == Control
-                println("  compiling ", Vs[end].name, " ", Vs[end].indx...)
+            V = Vs[end]
+            if typeof(V) == Control
+                println("  compiling ", V.name, " ", V.indx...)
+            elseif typeof(V) == Measurement
+                println("  compiling M ", V.k)
             else
-                println("  compiling ", Vs[end].name, " ", Vs[end].k)
+                println("  compiling ", V.name, " ", V.k)
             end
         end
     end
-    println("compiled\n")
+    println("\ncompiled\n")
     Vs
 end
 
@@ -56,6 +59,8 @@ function run!(QC::QCircuit, verbose=true)
         if verbose
             if typeof(V) == Control
                 println(V.name, " ", V.indx...)
+            elseif typeof(V) == Measurement
+                println("M ", V.k, " -> ", QC.out[V.k])
             else
                 println(V.name, " ", V.k)
             end
@@ -88,8 +93,10 @@ function evolve!(QC::QCircuit, V::Operator)
     end
 end
 
-function operate!(QC::QCircuit, V::Operator)
-    insert!(QC.ops, QC.pos + 1, V)
+function operate!(QC::QCircuit, Vs::Vector{T} where {T<:Operator})
+    for (i, V) in enumerate(Vs)
+        insert!(QC.ops, QC.pos + i, V)
+    end
     step!(QC)
 end
 

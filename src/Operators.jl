@@ -3,10 +3,10 @@ push!(LOAD_PATH, pwd())
 
 module Operators
 
-using LinearAlgebra, Tensor
+using Base, LinearAlgebra, Tensor
 
 export Operator, Gate, Control, Measurement
-
+export GATES, PARAM_GATES
 
 const GATES = Dict(:I => [1 0;
                           0 1],
@@ -62,11 +62,10 @@ abstract type Operator end
 #
 
 struct Measurement <: Operator
-    name::Symbol
-    basis::NTuple{2, Vector{C}}
     k::Int
+    basis::NTuple{2, Vector{C}}
 
-    Measurement(k::Int, β=BASIS) = new(Symbol("M"), β, k)
+    Measurement(k::Int, β=BASIS) = new(k, β)
 end
 
 function (M::Measurement)(ψ::Vector{C}, N::Int)
@@ -144,17 +143,19 @@ function (CG::Control)(ψ::Vector{C}, N::Int)
     U = CG.gate.U
     P₀ = BASIS[1] * BASIS[1]'
     P₁ = BASIS[2] * BASIS[2]'
-    V = P₀ ⊗ I + P₁ ⊗ U
+    Ũ = P₀ ⊗ I + P₁ ⊗ U
     if Cnum > 1
         for i = 2:Cnum
             I′ = diagm(ones(C, 2^i))
-            V = P₀ ⊗ I′ + P₁ ⊗ V
+            Ũ = P₀ ⊗ I′ + P₁ ⊗ Ũ
         end
     end
-    tensor(V, CG.indx, N) * ψ
+    tensor(Ũ, CG.indx, N) * ψ
 end
 
 ⊗(x, y)= kron(x, y)
+
+Base.:^(V::Operator, n::Int) = n < 1 ? [Gate((:I, 1))] : [V for i = 1:n]
 
 end
 
