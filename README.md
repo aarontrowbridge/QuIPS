@@ -21,7 +21,7 @@ As an example of what a *quip* currently looks like, here is a Julia vector cont
 ```julia
 quip = [
     (:H, 2),
-    (:CX, [2, 1]),
+    (:CX, (2, 1)),
     (:MEASURE, 1),
     (:MEASURE, 2)
 ]
@@ -35,10 +35,10 @@ A *quip* is currently formatted as a Julia vector of tuples, where each tuple co
 quip = [
     (:RX, 3.14, 1),
     (:Y, 2),
-    (:CCZ, [3, 2, 1]),
+    (:CCZ, (3, 2, 1)),
     (:H, 1),
-    (:CY, [3, 2])
-    (:CCH, [2, 1, 3])
+    (:CY, (3, 2))
+    (:CCH, (2, 1, 3))
     (:PHASE, 0.5*3.14, 3)
 ]
 ```

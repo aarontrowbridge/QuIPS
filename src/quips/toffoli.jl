@@ -5,7 +5,7 @@ using QuIPS
 quip = [
     (:X, 3),
     (:X, 2),
-    (:CCX, [3,2,1]),
+    (:CCX, (3, 2, 1)),
 ]
 
 QC = QCircuit(quip, 3)

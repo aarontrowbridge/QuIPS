@@ -125,9 +125,9 @@ end
 struct Control <: Operator
     name::Symbol
     gate::Gate
-    indx::Vector{Int}
+    indx::Tuple{Vararg{Int}}
 
-    function Control(tag::Tuple{Symbol,Vector{Int}})
+    function Control(tag::Tuple{Symbol,Tuple{Vararg{Int}}})
         name, indx = tag
         U = Symbol(String(filter!(l -> l != 'C', [String(name)...])))
         k = indx[end]
@@ -135,7 +135,7 @@ struct Control <: Operator
         new(name, gate, indx)
     end
 
-    function Control(tag::Tuple{Symbol,Float32,Vector{Int}})
+    function Control(tag::Tuple{Symbol,Float32,Tuple{Vararg{Int}}})
         name, p, indx = tag
         U = Symbol(String(filter!(l -> l != 'C', [String(name)...])))
         k = indx[end]
@@ -145,14 +145,14 @@ struct Control <: Operator
 end
 
 function (CG::Control)(ψ::Vector{C}, N::Int)
-    controls = length(filter!(l -> l == 'C',[String(CG.name)...]))
+    Cnum = length(filter!(l -> l == 'C',[String(CG.name)...]))
     I = GATES[:I]
     U = CG.gate.U
     P₀ = COMP_PROJS[1]
     P₁ = COMP_PROJS[4]
     V = P₀ ⊗ I + P₁ ⊗ U
-    if controls > 1
-        for i = 2:controls
+    if Cnum > 1
+        for i = 2:Cnum
             I′ = diagm(ones(C, 2^i))
             V = P₀ ⊗ I′ + P₁ ⊗ V
         end

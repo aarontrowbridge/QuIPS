@@ -4,7 +4,7 @@ using QuIPS
 
 quip = [
     (:H, 1),
-    (:CX, [1, 2]),
+    (:CX, (1, 2)),
     (:MEASURE, 1),
     (:MEASURE, 2)
 ]
