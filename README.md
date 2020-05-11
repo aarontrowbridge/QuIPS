@@ -39,11 +39,11 @@ quip = [
     (:H, 1),
     (:CY, [3, 2])
     (:CCH, [2, 1, 3])
-    (:PHASE, 2*3.14, 3)
+    (:PHASE, 0.5*3.14, 3)
 ]
 ```
 
-I am fooling around with gates at this point so lets start to thinka about some other angles to attack.
+I am fooling around with gates at this point so lets start to think about some other angles to attack.
 
 The ultimate goal for the future is to use macros to read in a quip in a less noisy format.
 
