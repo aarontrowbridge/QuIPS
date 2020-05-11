@@ -2,8 +2,6 @@ push!(LOAD_PATH, pwd())
 
 using QuIPS
 
-⊗(x, y) = kron(x, y)
-
 # ψ₀ = H * [0,1] ⊗ [1,0] ⊗ [1,0]
 
 quip = [
@@ -11,7 +9,7 @@ quip = [
     (:H, 2),
     (:CX, (2, 3)),
 
-    # preparing qubit to be teleported
+    # preparing qubit to be teleported by alice to bob
     (:X, 1),
     (:H, 1),
 
@@ -40,13 +38,17 @@ H = GATES[:H]
 operate!(QC, X̂(3)^M₂)
 operate!(QC, Ẑ(3)^M₁)
 
-ψ′ = (X^M₁ * [1,0]) ⊗ (X^M₂ * [1,0]) ⊗ (H * X * [1,0])
-
 for d in QC.wfn println(d) end
 
 println()
 
+⊗(x, y) = kron(x, y)
+
+ψ′ = (X^M₁ * [1,0]) ⊗ (X^M₂ * [1,0]) ⊗ (H * X * [1,0])
+
 for d in ψ′ println(d) end
+
+println()
 
 
 

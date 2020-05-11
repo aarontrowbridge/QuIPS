@@ -49,15 +49,24 @@ The ultimate goal for the future is to use macros to read in a quip in a less no
 
 ## To-Do
 
+### syntax
 * macros
 * visualisations
 * run! functionality
-* algorithms 
-  * teleportation
-  * QFFT
-  * ising
-* density matrix
-* artificial noise
-* GPU support
+
+### algorithms 
+* teleportation
+* QFFT
+* ising
+
+### formalisms
+* density operator
+  * artificial noise
+* path integral
+  
+### optimizations
+* graph state
+* clifford group
+* GPU
 
 
