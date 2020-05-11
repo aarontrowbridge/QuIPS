@@ -110,7 +110,7 @@ struct Gate <: Operator
 
     Gate(tag::Tuple{Symbol,Float32,Int}) = begin
         name, p, k = tag;
-        new(name, p, k, PARAM_GATES[name])
+        new(name, p, k, PARAM_GATES[name](p))
     end
 end
 
@@ -152,7 +152,7 @@ function (CG::Control)(ψ::Vector{C}, N::Int)
     Cs = length(CG.indx) - 1
     if Cs > 1
         for i = 2:Cs
-            Iᵢ = diagm(ones(C, 2^i))
+            Îᵢ = diagm(ones(C, 2^i))
             CU = P̂₀ ⊗ Îᵢ + P̂₁ ⊗ CÛ
         end
     end
@@ -161,7 +161,7 @@ end
 
 ⊗(x, y)= kron(x, y)
 
-Base.:^(V::Operator, n::Int) = n < 1 ? [Gate((:I, 1))] : [V for i = 1:n]
+Base.:^(V̂::Operator, n::Int) = n < 1 ? [Gate((:I, 1))] : [V̂ for i = 1:n]
 
 end
 
