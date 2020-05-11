@@ -3,32 +3,33 @@ push!(LOAD_PATH, pwd())
 using QuIPS
 
 quip = [
-    (:H, 2),
-    (:CNOT, 2, 1),
+    (:H, 1),
+    (:CX, [1, 2]),
     (:MEASURE, 1),
     (:MEASURE, 2)
 ]
 
-cirq = Circuit(quip, 2)
+QC = Circuit(quip, 2)
 
-for i = 1:10
-    run!(cirq)
-    println(cirq.out)
-    reset!(cirq)
+for i = 1:5
+    run!(QC)
+    println(QC.out)
+    reset!(QC)
 end
 
-N = 10000
-gs = 0
+println()
 
+N = 1000
+gs = 0
 for i = 1:N
-    run!(cirq)
-    if cirq.out[1] == 1
+    run!(QC)
+    if QC.out[1] == 1
         global gs += 1
     end
-    reset!(cirq)
+    reset!(QC)
 end
 
-println(gs/N)
+println("% of correlated outcomes = 1 for $N runs: ", gs/N)
 
 
 

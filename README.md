@@ -21,11 +21,13 @@ As an example of what a *quip* currently looks like, here is a Julia vector cont
 ```
 quip = [
     (:H, 2),
-    (:CNOT, 2, 1),
+    (:CX, [2, 1]),
     (:MEASURE, 1),
     (:MEASURE, 2)
 ]
 ```
+
+Here, `:CX = :CNOT`, both are allowed, but I prefer `:CX` as it flows with the naming convention and differentiates quantum compuation, the X gate, from the classical compuation, the NOT gate. "NOT" is ill defined.
 
 A *quip* is currently formatted as a Julia vector of tuples, where each tuple contains a symbol specifying the desired operation, optionally a parameter for parameterized gates and finally the index(es) of the targeted qubit(s**. 
 
@@ -33,9 +35,9 @@ The goal for the future is to use macros to read in a quip in a less noisy forma
 
 ## To-Do
 
-* controlled operators
 * macros
 * visualisations
+* run! functionality
 * algorithms 
   * teleportation
   * QFFT
