@@ -1,5 +1,6 @@
+push!(LOAD_PATH, homedir()*"/Projects/QuIPS/src")
+
 # operator library
-push!(LOAD_PATH, pwd())
 
 module Operators
 
@@ -158,8 +159,6 @@ function (CG::Control)(ψ::Vector{C}, N::Int)
     end
     tensor(CÛ, CG.indx, N) * ψ
 end
-
-⊗(x, y)= kron(x, y)
 
 Base.:^(V̂::Operator, n::Int) = n < 1 ? [Gate((:I, 1))] : [V̂ for i = 1:n]
 

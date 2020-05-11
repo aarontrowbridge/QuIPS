@@ -12,7 +12,7 @@ module Tensor
 
 using LinearAlgebra
 
-export tensor
+export tensor, ⊗
 
 const C = Complex{Float32}
 

@@ -2,6 +2,20 @@ push!(LOAD_PATH, pwd())
 
 using QuIPS
 
+function show(V::Operator)
+    if typeof(V) == Control
+        println("  ", V.name, " ", ["$j " for j in V.indx]...)
+    elseif typeof(V) == Gate
+        if V.name == :I
+            println("  ", V.name)
+        else
+            println("  ", V.name, " ", V.k)
+        end
+    else
+        println("  MEASURE ", V.k)
+    end
+end
+
 # ψ₀ = H * [0,1] ⊗ [1,0] ⊗ [1,0]
 
 quip = [
@@ -24,33 +38,34 @@ QC = QCircuit(quip, 3)
 
 QC |> run!
 
-println()
-
 M₁ = Int(QC.out[1])
 M₂ = Int(QC.out[2])
 
 X̂(i) = Gate((:X, i))
 Ẑ(i) = Gate((:Z, i))
 
-X = GATES[:X]
-H = GATES[:H]
-
 operate!(QC, X̂(3)^M₂)
-operate!(QC, Ẑ(3)^M₁)
+X̂′ = QC.ops[end]
+show(X̂′)
 
-println("QC.wfn:")
-for d in QC.wfn println(d) end
+operate!(QC, Ẑ(3)^M₁)
+Ẑ′ = QC.ops[end]
+show(Ẑ′)
+
+println("\nQC.wfn:")
+for i in QC.wfn println("  ", i) end
 
 println()
 
-⊗(x, y) = kron(x, y)
+X = GATES[:X]
+H = GATES[:H]
 
 ψ′ = (X^M₁ * [1,0]) ⊗ (X^M₂ * [1,0]) ⊗ (H * X * [1,0])
 
 const C = Complex{Float32}
 
 println("ψ′:")
-for d in C.(ψ′) println(d) end
+for i in C.(ψ′) println("  ", i) end
 
 println()
 println(" QC.wfn == ψ′ : ", isapprox(QC.wfn, C.(ψ′)))

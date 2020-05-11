@@ -1,3 +1,5 @@
+push!(LOAD_PATH, homedir()*"/Projects/QuIPS/src")
+
 # Quantum Virtual Machine Library
 
 module QVM
@@ -14,6 +16,12 @@ mutable struct QCircuit
     out::BitVector
     pos::Int
     N::Int
+
+    function QCircuit(N::Int)
+        wfn = zeros(C, 2^N); wfn[1] = 1
+        out = BitVector(undef, N)
+        new(wfn, [], out, 0, N)
+    end
 
     function QCircuit(quip::Vector, N::Int)
         wfn = zeros(C, 2^N); wfn[1] = 1
@@ -37,9 +45,9 @@ function compile(quip::Vector, verbose=true)
         if verbose
             V = Vs[end]
             if typeof(V) == Control
-                println("  compiling ", V.name, " ", V.indx...)
+                println("  compiling ", V.name, [" $i" for i in V.indx]...)
             elseif typeof(V) == Measurement
-                println("  compiling M ", V.k)
+                println("  compiling MEASURE ", V.k)
             else
                 println("  compiling ", V.name, " ", V.k)
             end
@@ -51,18 +59,18 @@ end
 
 function run!(QC::QCircuit, verbose=true)
     if verbose
-        println("starting run now\n")
+        println("beginning run\n")
     end
     for V in QC.ops
         QC.pos += 1
         evolve!(QC, V)
         if verbose
             if typeof(V) == Control
-                println(V.name, " ", V.indx...)
+                println("  ", V.name, [" $i" for i in V.indx]...)
             elseif typeof(V) == Measurement
-                println("M ", V.k, " -> ", QC.out[V.k])
+                println("  MEASURE ", V.k, " -> ", QC.out[V.k])
             else
-                println(V.name, " ", V.k)
+                println("  ", V.name, " ", V.k)
             end
         end
     end
