@@ -83,9 +83,13 @@ const SWAP = [1 0 0 0;
 
 # k < j => Q(k) -> Q(j)
 σ(j, k, N) = begin
-    τs = [τ(k + j - i - 1, N) for i = k:j-1];
-    reverse_τs = reverse(τs);
-    k < j ? (*(τs...), *(reverse_τs...)) : (C(1), C(1))
+    if k < j
+        τs = [τ(k + j - i - 1, N) for i = k:j-1];
+        reverse_τs = reverse(τs);
+        return (*(τs...), *(reverse_τs...))
+    else
+        return(C(1), C(1))
+    end
 end
 
 end

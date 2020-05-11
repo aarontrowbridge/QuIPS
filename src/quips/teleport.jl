@@ -37,10 +37,10 @@ Ẑ(i) = Gate((:Z, i))
 X = GATES[:X]
 H = GATES[:H]
 
-ψ′ = (X^M₁ * [1,0]) ⊗ (X^M₂ * [1,0]) ⊗ (H * X * [1,0])
+operate!(QC, X̂(3)^M₂)
+operate!(QC, Ẑ(3)^M₁)
 
-operate!(QC, X̂(3)^M₁)
-operate!(QC, Ẑ(3)^M₂)
+ψ′ = (X^M₁ * [1,0]) ⊗ (X^M₂ * [1,0]) ⊗ (H * X * [1,0])
 
 for d in QC.wfn println(d) end
 

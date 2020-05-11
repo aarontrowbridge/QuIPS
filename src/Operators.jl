@@ -8,6 +8,12 @@ using Base, LinearAlgebra, Tensor
 export Operator, Gate, Control, Measurement
 export GATES, PARAM_GATES
 
+#
+#
+# Constants
+#
+#
+
 const GATES = Dict(:I => [1 0;
                           0 1],
 
@@ -138,19 +144,19 @@ struct Control <: Operator
 end
 
 function (CG::Control)(ψ::Vector{C}, N::Int)
-    Cnum = length(filter!(l -> l == 'C',[String(CG.name)...]))
-    I = GATES[:I]
-    U = CG.gate.U
-    P₀ = BASIS[1] * BASIS[1]'
-    P₁ = BASIS[2] * BASIS[2]'
-    Ũ = P₀ ⊗ I + P₁ ⊗ U
-    if Cnum > 1
-        for i = 2:Cnum
-            I′ = diagm(ones(C, 2^i))
-            Ũ = P₀ ⊗ I′ + P₁ ⊗ Ũ
+    Î = GATES[:I]
+    P̂₀ = BASIS[1] * BASIS[1]'
+    P̂₁ = BASIS[2] * BASIS[2]'
+    Û = CG.gate.U
+    CÛ = P̂₀ ⊗ Î + P̂₁ ⊗ Û
+    Cs = length(CG.indx) - 1
+    if Cs > 1
+        for i = 2:Cs
+            Iᵢ = diagm(ones(C, 2^i))
+            CU = P̂₀ ⊗ Îᵢ + P̂₁ ⊗ CÛ
         end
     end
-    tensor(Ũ, CG.indx, N) * ψ
+    tensor(CÛ, CG.indx, N) * ψ
 end
 
 ⊗(x, y)= kron(x, y)
