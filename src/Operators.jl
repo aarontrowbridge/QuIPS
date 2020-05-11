@@ -6,6 +6,7 @@ using LinearAlgebra
 
 export Operator, Gate, Measurement, GATES, PGATES
 
+
 const GATES = Dict(:I => [1 0;
                           0 1],
 
@@ -37,6 +38,7 @@ const GATES = Dict(:I => [1 0;
                              0 1 0 0;
                              0 0 0 1])
 
+
 const PGATES = Dict(:RX => γ -> exp(im * γ * GATES[:X]),
 
                     :RY => β -> exp(im * β * GATES[:Y]),
@@ -45,17 +47,20 @@ const PGATES = Dict(:RX => γ -> exp(im * γ * GATES[:X]),
 
                     :PHASE => θ -> [1 0; 0 exp(im * θ)])
 
-const BASIS = ([1, 0], [0, 1])
+
+const COMP_BASIS = ([1, 0],
+                    [0, 1])
+
 
 const C = Complex{Float32}
 
 abstract type Operator end
 
-mutable struct Measurement <: Operator
+struct Measurement <: Operator
     k::Int
     basis::NTuple{2, Vector{C}}
 
-    Measurement(k::Int, basis=BASIS) = new(k, basis)
+    Measurement(k::Int, basis=COMP_BASIS) = new(k, basis)
 end
 
 function (M::Measurement)(ψ::Vector{C}, N::Int)
@@ -106,6 +111,15 @@ end
 
 (G::Gate)(ψ::Vector{C}, N::Int) = tensor(G.U, G.k, N) * ψ
 
+# struct Control <: Operator
+#     name::Symbol
+#     ktup::Tuple{Vararg{Int}}
+#     gate::Gate
+
+
+
+
+
 # tensor the matrix U of order n up to order N,
 # where U acts on qubits: j, j + 1,... k; j < k
 #
@@ -130,8 +144,8 @@ function tensor(U::Matrix{C}, ktup::Tuple{Vararg{Int}}, N::Int)
     end
 end
 
-# Uₖ -> I₁ ⊗ ... ⊗ I(k - 1 times) ⊗ ... ⊗ I(k - 1)
-#       ⊗ Uₖ ⊗ I(k + n - 1) ⊗ ... ⊗ I(N - k - n + 1 times) ⊗ ... ⊗ I(N)
+# U(k) -> I₁ ⊗ ... ⊗ I(k - 1 times) ⊗ ... ⊗ I(k - 1)
+#       ⊗ U(k) ⊗ I(k + n - 1) ⊗ ... ⊗ I(N - k - n + 1 times) ⊗ ... ⊗ I(N)
 #
 function tensor(U::Matrix{C}, k::Int, N::Int)
     n = Int(log(2, size(U, 1)))
@@ -140,13 +154,13 @@ function tensor(U::Matrix{C}, k::Int, N::Int)
     L ⊗ U ⊗ R
 end
 
-# Qᵢ -> Q[i + 1]
+# Q(i) -> Q(i + 1)
 τ(i, N) = tensor(C.(GATES[:SWAP]), i, N)
 
-# j > k => Qₖ -> Qⱼ
+# j > k => Q(k) -> Q(j)
 σ(j, k, N) = k < j ? *([τ(k + j - i - 1, N) for i = k:j-1]...) : C(1)
 
-# j < k => Qⱼ -> Q(k - 1)
+# j < k => Q(j) -> Q(k - 1)
 σ′(j, k, N) = σ(k - 1, j, N)
 
 ⊗(x, y) = kron(x, y)

@@ -2,72 +2,74 @@
 
 module QVM
 
-export Circuit, run!, step!, reset!
+export Circuit, run!, step!, reset!, operate!
 
 using Operators
 
 const C = Complex{Float32}
 
 mutable struct Circuit
-    N::Int
     wfn::Vector{C}
     ops::Vector{Operator}
     out::BitVector
     pos::Int
+    N::Int
 
-    function Circuit(quip, N::Int)
+    function Circuit(quip::Vector, N::Int)
         wfn = zeros(2^N); wfn[1] = 1
         ops = compile(quip)
         out = BitVector(undef, N)
-        new(N, wfn, ops, out, 0)
+        new(wfn, ops, out, 0, N)
     end
 end
 
-function compile(quip)
-    oprs = []
+function compile(quip::Vector)
+    Vs = []
     for tag in quip
         if tag[1] == :MEASURE
-            push!(oprs, Measurement(tag[2]))
+            push!(Vs, Measurement(tag[2]))
         else
-            push!(oprs, Gate(tag))
+            push!(Vs, Gate(tag))
         end
     end
-    oprs
+    Vs
 end
 
-function run!(cirq::Circuit)
-    for opr in cirq.ops
-        cirq.pos += 1
-        if typeof(opr) == Measurement
-            ψ, outcome = opr(cirq.wfn, cirq.N)
-            cirq.out[opr.k] = outcome
-            cirq.wfn .= ψ
-        else
-            ψ = opr(cirq.wfn, cirq.N)
-            cirq.wfn .= ψ
-        end
+function run!(C::Circuit)
+    for V in C.ops
+        C.pos += 1
+        evolve!(C, V)
     end
 end
 
-function step!(cirq::Circuit)
-    if cirq.pos < length(cirq.ops)
-        cirq.pos += 1
-        opr = cirq.ops[cirq.pos]
-        if typeof(opr) == Measurement
-            ψ, outcome = opr(cirq.wfn, cirq.N)
-            cirq.out[opr.k] = outcome
-            cirq.wfn .= ψ
-        else
-            ψ = opr(cirq.wfn, cirq.N)
-            cirq.wfn .= ψ
-        end
-     end
+function step!(C::Circuit)
+    if C.pos < length(C.ops)
+        C.pos += 1
+        V = C.ops[C.pos]
+        evolve!(C, V)
+    end
 end
 
-function reset!(cirq::Circuit)
-    cirq.wfn = zero.(cirq.wfn); cirq.wfn[1] = 1
-    cirq.out = BitVector(undef, cirq.N)
-    cirq.pos = 0
+function reset!(C::Circuit)
+    C.wfn = zero.(C.wfn); C.wfn[1] = 1
+    C.out = BitVector(undef, C.N)
+    C.pos = 0
+end
+
+function evolve!(C::Circuit, V::Operator)
+    if typeof(V) == Measurement
+        ψ, outcome = V(C.wfn, C.N)
+        C.out[V.k] = outcome
+        C.wfn .= ψ
+    else
+        ψ = V(C.wfn, C.N)
+        C.wfn .= ψ
+    end
+end
+
+function operate!(C::Circuit, V::Operator)
+    insert!(C.ops, C.pos + 1, V)
+    step!(C)
 end
 
 end
