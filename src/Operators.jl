@@ -145,22 +145,36 @@ struct Control <: Operator
 end
 
 function (CG::Control)(ψ::Vector{C}, N::Int)
-    Î = GATES[:I]
+    I = GATES[:I]
     P̂₀ = BASIS[1] * BASIS[1]'
     P̂₁ = BASIS[2] * BASIS[2]'
     Û = CG.gate.U
-    CÛ = P̂₀ ⊗ Î + P̂₁ ⊗ Û
+    CÛ = P̂₀ ⊗ I + P̂₁ ⊗ Û
     Cs = length(CG.indx) - 1
     if Cs > 1
         for i = 2:Cs
-            Îᵢ = diagm(ones(C, 2^i))
-            CU = P̂₀ ⊗ Îᵢ + P̂₁ ⊗ CÛ
+            Iᵢ = diagm(ones(C, 2^i))
+            CU = P̂₀ ⊗ Iᵢ + P̂₁ ⊗ CÛ
         end
     end
     tensor(CÛ, CG.indx, N) * ψ
 end
 
-Base.:^(V̂::Operator, n::Int) = n < 1 ? [Gate((:I, 1))] : [V̂ for i = 1:n]
+Î = Gate((:I, 1))
+
+Base.:^(V̂::Operator, n::Int) = n < 1 ? [Î] : [V̂ for i = 1:n]
+
+function Base.show(V::Operator)
+    if typeof(V) == Control
+        println(V.name, " ", ["$j " for j in V.indx]...)
+    elseif typeof(V) == Gate
+        if V.name != :I
+            println(V.name, " ", V.k)
+        end
+    else
+        println("MEASURE ", V.k)
+    end
+end
 
 end
 

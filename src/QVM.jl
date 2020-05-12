@@ -44,13 +44,7 @@ function compile(quip::Vector, verbose=true)
         end
         if verbose
             V = Vs[end]
-            if typeof(V) == Control
-                println("  compiling ", V.name, [" $i" for i in V.indx]...)
-            elseif typeof(V) == Measurement
-                println("  compiling MEASURE ", V.k)
-            else
-                println("  compiling ", V.name, " ", V.k)
-            end
+            print("  compiling "); show(V)
         end
     end
     println("\ncompiled\n")
@@ -59,20 +53,22 @@ end
 
 function run!(QC::QCircuit, verbose=true)
     if verbose
-        println("beginning run\n")
+        println("\nbeginning run\n")
     end
     for V in QC.ops
         QC.pos += 1
         evolve!(QC, V)
         if verbose
-            if typeof(V) == Control
-                println("  ", V.name, [" $i" for i in V.indx]...)
-            elseif typeof(V) == Measurement
-                println("  MEASURE ", V.k, " -> ", QC.out[V.k])
+            if typeof(V) == Measurement
+                print("  "); show(V)
+                println("   -> ", QC.out[V.k])
             else
-                println("  ", V.name, " ", V.k)
+                print("  "); show(V)
             end
         end
+    end
+    if verbose
+        println("\nfinished run\n")
     end
 end
 
@@ -101,11 +97,11 @@ function evolve!(QC::QCircuit, V::Operator)
     end
 end
 
-function operate!(QC::QCircuit, Vs::Vector{T} where {T<:Operator})
-    for (i, V) in enumerate(Vs)
-        insert!(QC.ops, QC.pos + i, V)
-    end
+function operate!(QC::QCircuit, V::Operator)
+    insert!(QC.ops, QC.pos + 1, V)
     step!(QC)
 end
+
+operate!(QC::QCircuit, Vs::Vector) = for V in Vs operate!(QC, V) end
 
 end
