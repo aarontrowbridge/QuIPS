@@ -4,7 +4,7 @@ push!(LOAD_PATH, homedir()*"/Projects/QuIPS/src")
 
 module Operators
 
-using Base, LinearAlgebra, Tensor
+using LinearAlgebra, Tensor
 
 export Operator, Gate, Control, Measurement
 export GATES, PARAM_GATES
