@@ -6,8 +6,8 @@ module Operators
 
 using LinearAlgebra, Tensor
 
-export Operator, Gate, Control, Measurement
-export GATES, PARAM_GATES
+export Operator, Gate, ControlGate, Measurement
+export Gates
 
 #
 #
@@ -19,11 +19,8 @@ const GATES = Dict(:I => [1 0;
                           0 1],
 
                    :X => [0 1;
-                          1 0],
-
-                   :NOT => [0 1;
-                            1 0],
-
+                          1 0], :NOT => [0 1;
+                                         1 0],
                    :Y => [0 -im;
                           im 0],
 
@@ -47,6 +44,20 @@ const PARAM_GATES = Dict(:RX => γ -> exp(im * γ * GATES[:X]),
                          :RZ => α -> exp(im * α * GATES[:Z]),
 
                          :PHASE => θ -> [1 0; 0 exp(im * θ)])
+
+
+struct Gates
+    Us::Dict{Symbol,Matrix}
+    PUs::Dict{Symbol,Function}
+
+    Gates() = new(GATES, PARAM_GATES)
+
+    Gates(U::Tuple{Symbol,Matrix}) =
+        new(merge(GATES, Dict(U[1] => U[2])), PARAM_GATES)
+
+    Gates(PU::Tuple{Symbol,Function}) =
+        new(GATES, merge(PARAM_GATES, Dict(PU[1] => PU[2])))
+end
 
 
 const BASIS = ([1, 0],
@@ -119,15 +130,15 @@ end
 
 
 #
-# Control Operator
+# ControlGate Operator
 #
 
-struct Control <: Operator
+struct ControlGate <: Operator
     name::Symbol
     gate::Gate
     indx::Tuple{Vararg{Int}}
 
-    function Control(tag::Tuple{Symbol,Tuple{Vararg{Int}}})
+    function ControlGate(tag::Tuple{Symbol,Tuple{Vararg{Int}}})
         name, indx = tag
         U = Symbol(String(filter!(l -> l != 'C', [String(name)...])))
         k = indx[end]
@@ -135,7 +146,7 @@ struct Control <: Operator
         new(name, gate, indx)
     end
 
-    function Control(tag::Tuple{Symbol,Float32,Tuple{Vararg{Int}}})
+    function ControlGate(tag::Tuple{Symbol,Float32,Tuple{Vararg{Int}}})
         name, p, indx = tag
         U = Symbol(String(filter!(l -> l != 'C', [String(name)...])))
         k = indx[end]
@@ -144,7 +155,7 @@ struct Control <: Operator
     end
 end
 
-function (CG::Control)(ψ::Vector{C}, N::Int)
+function (CG::ControlGate)(ψ::Vector{C}, N::Int)
     I = GATES[:I]
     P̂₀ = BASIS[1] * BASIS[1]'
     P̂₁ = BASIS[2] * BASIS[2]'
@@ -165,7 +176,7 @@ Î = Gate((:I, 1))
 Base.:^(V̂::Operator, n::Int) = n < 1 ? [Î] : [V̂ for i = 1:n]
 
 function Base.show(V::Operator)
-    if typeof(V) == Control
+    if typeof(V) == ControlGate
         println(V.name, " ", ["$j " for j in V.indx]...)
     elseif typeof(V) == Gate
         if V.name != :I

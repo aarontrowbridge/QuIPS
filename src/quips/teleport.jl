@@ -2,7 +2,7 @@ push!(LOAD_PATH, homedir()*"/Projects/QuIPS/src")
 
 using QuIPS
 
-# ψ₀ = H * [0,1] ⊗ [1,0] ⊗ [1,0]
+# ψ₀ = Ĥ₁ * [0,1] ⊗ [1,0] ⊗ [1,0]
 
 quip = [
     # entangeling alice and bob's qubits
@@ -41,8 +41,8 @@ print("  "); show(Ẑ′)
 println("\nQC.wfn:\n")
 for i in QC.wfn println("  ", i) end
 
-X = GATES[:X]
-H = GATES[:H]
+X = Gates().Us[:X]
+H = Gates().Us[:H]
 
 ψ′ = (X^m₁ * [1,0]) ⊗ (X^m₂ * [1,0]) ⊗ (H * X * [1,0])
 

@@ -22,45 +22,45 @@ function tensor(V::Matrix{C}, indx::Tuple{Vararg{Int}}, N::Int)
         if j > k
             # Qₖ ⊗ Qⱼ -> Qⱼ ⊗ Q(j - 1)
             Ṽ = tensor(V, j, N)
-            F, B = σ(j, k, N)
+            R, L = σ(j, k, N)
         else
             # Qⱼ ⊗ Qₖ -> Q(k - 1) ⊗ Qₖ
             Ṽ = tensor(V, k, N)
-            F, B = σ(k - 1, j, N)
+            R, L = σ(k - 1, j, N)
         end
-        return B * Ṽ * F
+        return L * Ṽ * R
     else
         i, j, k = indx
         if i > j && j > k
             Ṽ = tensor(V, i, N)
-            F₁, B₁ = σ(i, k, N)
-            F₂, B₂ = σ(i - 1, j - 1, N)
+            R₁, L₁ = σ(i, k, N)
+            R₂, L₂ = σ(i - 1, j - 1, N)
         elseif i < j && j > k
             if i < k
                 Ṽ = tensor(V, j, N)
-                F₁, B₁ = σ(j, k, N)
-                F₂, B₂ = σ(j - 2, i, N)
+                R₁, L₁ = σ(j, k, N)
+                R₂, L₂ = σ(j - 2, i, N)
             else
                 Ṽ = tensor(V, j, N)
-                F₁, B₁ = σ(j, k, N)
-                F₂, B₂ = σ(j - 2, i - 1, N)
+                R₁, L₁ = σ(j, k, N)
+                R₂, L₂ = σ(j - 2, i - 1, N)
             end
         elseif i > j && j < k
             if i < k
                 Ṽ = tensor(V, k, N)
-                F₁, B₁ = σ(k - 1, j, N)
-                F₂, B₂ = σ(j - 2, i - 1, N)
+                R₁, L₁ = σ(k - 1, j, N)
+                R₂, L₂ = σ(j - 2, i - 1, N)
             else
                 Ṽ = tensor(V, i, N)
-                F₁, B₁ = σ(i, k, N)
-                F₂, B₂ = σ(i - 1, j, N)
+                R₁, L₁ = σ(i, k, N)
+                R₂, L₂ = σ(i - 1, j, N)
             end
         else
             Ṽ = tensor(V, k, N)
-            F₁, B₁ = σ(k - 1, j, N)
-            F₂, B₂ = σ(k - 2, i, N)
+            R₁, L₁ = σ(k - 1, j, N)
+            R₂, L₂ = σ(k - 2, i, N)
         end
-        return B₁ * B₂ * Ṽ * F₂ * F₁
+        return L₁ * L₂ * Ṽ * R₂ * R₁
     end
 end
 
@@ -85,10 +85,9 @@ const SWAP = [1 0 0 0;
 σ(j, k, N) = begin
     if k < j
         τs = [τ(k + j - i - 1, N) for i = k:j-1];
-        reverse_τs = reverse(τs);
-        return (*(τs...), *(reverse_τs...))
+        return (*(τs...), *(reverse(τs)...))
     else
-        return(C(1), C(1))
+        return (C(1), C(1))
     end
 end
 

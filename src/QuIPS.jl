@@ -20,10 +20,9 @@ using Operators
 
 export Operator
 export Gate
-export Control
+export ControlGate
 export Measurement
-export GATES
-export PARAM_GATES
+export Gates
 
 
 using Tensor

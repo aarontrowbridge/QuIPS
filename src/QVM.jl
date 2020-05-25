@@ -38,7 +38,7 @@ function compile(quip::Vector, verbose=true)
         if tag[1] == :MEASURE || tag[1] == :M
             push!(Vs, Measurement(tag[2]))
         elseif String(tag[1])[1] == 'C'
-            push!(Vs, Control(tag))
+            push!(Vs, ControlGate(tag))
         else
             push!(Vs, Gate(tag))
         end
