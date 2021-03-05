@@ -2,7 +2,7 @@
 # script, or "quip", to run the CIRQ
 #
 
-push!(LOAD_PATH, homedir()*"/Projects/QuIPS/src")
+push!(LOAD_PATH, homedir()*"/projects/QuIPS/src")
 
 using QuIPS
 

@@ -59,9 +59,11 @@ struct Gates
         new(GATES, merge(PARAM_GATES, Dict(PU[1] => PU[2])))
 end
 
+# TODO: add support for multiple gates here
 
-const BASIS = ([1, 0],
-               [0, 1])
+
+const COMP_BASIS = ([1, 0],
+                    [0, 1])
 
 
 const C = Complex{Float32}
@@ -83,7 +85,7 @@ struct Measurement <: Operator
     k::Int
     basis::NTuple{2, Vector{C}}
 
-    Measurement(k::Int, β=BASIS) = new(k, β)
+    Measurement(k::Int, β=COMP_BASIS) = new(k, β)
 end
 
 function (M::Measurement)(ψ::Vector{C}, N::Int)
@@ -111,8 +113,8 @@ end
 
 struct Gate <: Operator
     name::Symbol
-    p::Union{Float32, Nothing}
-    k::Int
+    p::Union{Float32, Nothing} # parameter
+    k::Int                     # target qubit
     U::Matrix{C}
 
     Gate(tag::Tuple{Symbol,Int}) = begin
@@ -157,8 +159,8 @@ end
 
 function (CG::ControlGate)(ψ::Vector{C}, N::Int)
     I = GATES[:I]
-    P̂₀ = BASIS[1] * BASIS[1]'
-    P̂₁ = BASIS[2] * BASIS[2]'
+    P̂₀ = COMP_BASIS[1] * COMP_BASIS[1]'
+    P̂₁ = COMP_BASIS[2] * COMP_BASIS[2]'
     Û = CG.gate.U
     CÛ = P̂₀ ⊗ I + P̂₁ ⊗ Û
     Cs = length(CG.indx) - 1

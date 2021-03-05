@@ -4,8 +4,7 @@
 #
 # and |ψ₀> = |0>₁ ⊗ |0>₂ ⊗ ... ⊗ |0>(N)
 #
-# V(k) -> I₁ ⊗ ... ⊗ I(k - 1 times) ⊗ ... ⊗ I(k - 1)
-#       ⊗ V(k) ⊗ I(k + n - 1) ⊗ ... ⊗ I(N - k - n + 1 times) ⊗ ... ⊗ I(N)
+# V(k) -> I₁ ⊗ ... ⊗ I(k - 1) ⊗ V(k) ⊗ I(k + n - 1) ⊗ ... ⊗ I(N)
 #
 
 module Tensor
