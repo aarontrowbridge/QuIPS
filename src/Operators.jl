@@ -7,7 +7,7 @@ module Operators
 using LinearAlgebra, Tensor
 
 export Operator, Gate, ControlGate, Measurement
-export Gates
+export Gates, addgate, addgates
 
 #
 #
@@ -45,21 +45,40 @@ const PARAM_GATES = Dict(:RX => γ -> exp(im * γ * GATES[:X]),
 
                          :PHASE => θ -> [1 0; 0 exp(im * θ)])
 
+#
+# Gates: Set of all usable gates
+#
 
 struct Gates
     Us::Dict{Symbol,Matrix}
-    PUs::Dict{Symbol,Function}
+    PUs::Dict{Symbol, Function} 
 
     Gates() = new(GATES, PARAM_GATES)
-
-    Gates(U::Tuple{Symbol,Matrix}) =
-        new(merge(GATES, Dict(U[1] => U[2])), PARAM_GATES)
-
-    Gates(PU::Tuple{Symbol,Function}) =
-        new(GATES, merge(PARAM_GATES, Dict(PU[1] => PU[2])))
 end
 
-# TODO: add support for multiple gates here
+#### Functions to add additional gates to the set
+
+# Add one gate
+function addgate!(gates:: Gates, U::Tuple{Symbol, Matrix}):
+    merge!(gates.Us, Dict(U))
+end
+
+function addgate!(gates:: Gates, PU::Tuple{Symbol, Function}):
+    merge!(gates.PUs, Dict(PU))
+end
+
+# Add a list of gates
+function addgates!(gates::Gates, Us::Vector{Tuple{Symbol, Matrix}}):
+    for U in Us:
+        adgate!(gates, U)
+    end
+end
+
+function addgates!(gates::Gates, PUs::Vector{Tuple{Symbol, Function}}):
+    for PU in PUs:
+        adgate!(gates, PU)
+    end
+end
 
 
 const COMP_BASIS = ([1, 0],
