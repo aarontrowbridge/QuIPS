@@ -8,23 +8,23 @@ export QCircuit, run!, step!, reset!, operate!
 
 using Operators
 
-const C = Complex{Float32}
+const C32 = Complex{Float32}
 
 mutable struct QCircuit
-    wfn::Vector{C}
+    wfn::Vector{C32}
     ops::Vector{Operator}
     out::BitVector
     pos::Int
     N::Int
 
     function QCircuit(N::Int)
-        wfn = zeros(C, 2^N); wfn[1] = 1
+        wfn = zeros(C32, 2^N); wfn[1] = 1
         out = BitVector(undef, N)
         new(wfn, [], out, 0, N)
     end
 
     function QCircuit(quip::Vector, N::Int)
-        wfn = zeros(C, 2^N); wfn[1] = 1
+        wfn = zeros(C32, 2^N); wfn[1] = 1
         ops = compile(quip)
         out = BitVector(undef, N)
         new(wfn, ops, out, 0, N)

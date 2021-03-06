@@ -13,9 +13,9 @@ using LinearAlgebra
 
 export tensor, ⊗
 
-const C = Complex{Float32}
+const C32 = Complex{Float32}
 
-function tensor(V::Matrix{C}, indx::Tuple{Vararg{Int}}, N::Int)
+function tensor(V::Matrix{C32}, indx::Tuple{Vararg{Int}}, N::Int)
     if length(indx) == 2
         j, k = indx
         if j > k
@@ -63,10 +63,10 @@ function tensor(V::Matrix{C}, indx::Tuple{Vararg{Int}}, N::Int)
     end
 end
 
-function tensor(V::Matrix{C}, k::Int, N::Int)
+function tensor(V::Matrix{C32}, k::Int, N::Int)
     n = Int(log(2, size(V, 1)))
-    L = diagm(ones(C, 2^(k - n)))
-    R = diagm(ones(C, 2^(N - k)))
+    L = diagm(ones(C32, 2^(k - n)))
+    R = diagm(ones(C32, 2^(N - k)))
     L ⊗ V ⊗ R
 end
 
@@ -78,7 +78,7 @@ const SWAP = [1 0 0 0;
               0 0 0 1]
 
 # Q(i) -> Q(i + 1)
-τ(i, N) = tensor(C.(SWAP), i + 1, N)
+τ(i, N) = tensor(C32.(SWAP), i + 1, N)
 
 # k < j => Q(k) -> Q(j)
 σ(j, k, N) = begin
@@ -86,7 +86,7 @@ const SWAP = [1 0 0 0;
         τs = [τ(k + j - i - 1, N) for i = k:j-1];
         return (*(τs...), *(reverse(τs)...))
     else
-        return (C(1), C(1))
+        return (C32(1), C32(1))
     end
 end
 

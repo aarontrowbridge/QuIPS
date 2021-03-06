@@ -85,7 +85,7 @@ const COMP_BASIS = ([1, 0],
                     [0, 1])
 
 
-const C = Complex{Float32}
+const C32 = Complex{Float32}
 
 
 #
@@ -102,15 +102,15 @@ abstract type Operator end
 
 struct Measurement <: Operator
     k::Int
-    basis::NTuple{2, Vector{C}}
+    basis::NTuple{2, Vector{C32}}
 
     Measurement(k::Int, β=COMP_BASIS) = new(k, β)
 end
 
-function (M::Measurement)(ψ::Vector{C}, N::Int)
+function (M::Measurement)(ψ::Vector{C32}, N::Int)
     k = M.k
     β₀ = M.basis[1]
-    M₀ = C.(β₀ * β₀')
+    M₀ = C32.(β₀ * β₀')
     M̃₀ = tensor(M₀, k, N)
     P₀ = abs(ψ' * M̃₀ * ψ)
     u = rand(Float32)
@@ -119,7 +119,7 @@ function (M::Measurement)(ψ::Vector{C}, N::Int)
         return M̃₀/p * ψ, 0
     else
         β₁ = M.basis[2]
-        M₁ = C.(β₁ * β₁')
+        M₁ = C32.(β₁ * β₁')
         M̃₁ = tensor(M₁, k, N)
         p = sqrt(1 - P₀)
         return M̃₁/p * ψ, 1
@@ -134,7 +134,7 @@ struct Gate <: Operator
     name::Symbol
     p::Union{Float32, Nothing} # parameter
     k::Int                     # target qubit
-    U::Matrix{C}
+    U::Matrix{C32}
 
     Gate(tag::Tuple{Symbol,Int}) = begin
         name, k = tag;
@@ -147,7 +147,7 @@ struct Gate <: Operator
     end
 end
 
-(G::Gate)(ψ::Vector{C}, N::Int) = tensor(G.U, G.k, N) * ψ
+(G::Gate)(ψ::Vector{C32}, N::Int) = tensor(G.U, G.k, N) * ψ
 
 
 #
@@ -176,7 +176,7 @@ struct ControlGate <: Operator
     end
 end
 
-function (CG::ControlGate)(ψ::Vector{C}, N::Int)
+function (CG::ControlGate)(ψ::Vector{C32}, N::Int)
     I = GATES[:I]
     P̂₀ = COMP_BASIS[1] * COMP_BASIS[1]'
     P̂₁ = COMP_BASIS[2] * COMP_BASIS[2]'
@@ -185,7 +185,7 @@ function (CG::ControlGate)(ψ::Vector{C}, N::Int)
     Cs = length(CG.indx) - 1
     if Cs > 1
         for i = 2:Cs
-            Iᵢ = diagm(ones(C, 2^i))
+            Iᵢ = diagm(ones(C32, 2^i))
             CU = P̂₀ ⊗ Iᵢ + P̂₁ ⊗ CÛ
         end
     end
