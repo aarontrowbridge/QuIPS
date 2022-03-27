@@ -1,0 +1,7 @@
+name = "QuIPS"
+uuid = "3894822c-8f1c-40c6-a186-ee2902a70b65"
+authors = ["Aaron Trowbridge <aaron.j.trowbridge@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

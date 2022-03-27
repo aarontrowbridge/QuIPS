@@ -2,8 +2,6 @@
 # script, or "quip", to run the CIRQ
 #
 
-push!(LOAD_PATH, homedir()*"/projects/QuIPS/src")
-
 using QuIPS
 
 M₁ = Measurement(1)
@@ -22,4 +20,3 @@ println(abs.(QC.wfn))
 ψ, out = M₁(QC.wfn, QC.N)
 
 println("Measurement Result: ", out)
-

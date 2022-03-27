@@ -1,5 +1,3 @@
-push!(LOAD_PATH, homedir()*"/Projects/QuIPS/src")
-
 using QuIPS
 
 quip = [
@@ -30,6 +28,3 @@ for i = 1:N
 end
 
 println("% of correlated outcomes = 1 for $N runs: ", gs/N)
-
-
-

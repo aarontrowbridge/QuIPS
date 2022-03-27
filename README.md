@@ -10,6 +10,18 @@ We can interpret this as,
 
 That motto will be the starting point of this project; modeling a quantum computer as a sequence of gate operations on an initital tensor product state of *N* Qubits.
 
+## Installation
+
+To install:
+
+* clone this repository
+* in julia REPL of cloned directory:
+  * enter pkg mode with `]`
+  * run `pkg> activate .` to activate directory environment
+  * run `pkg> instantiate` to set up package
+  
+Now package can be used with `using QuIPS` in julia scripts (quips) or right in REPL.
+
 ## Usage
 
 A quantum compuatation begins with specifying a list of successive gates and measurements.  We shall call this quantum information program, or process, or whatever, a *quip*. Additionally, the number of qubits, *N* must be specified. 

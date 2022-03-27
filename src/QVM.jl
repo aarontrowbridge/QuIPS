@@ -1,12 +1,11 @@
-push!(LOAD_PATH, homedir()*"/Projects/QuIPS/src")
-
 # Quantum Virtual Machine Library
 
 module QVM
 
 export QCircuit, run!, step!, reset!, operate!
 
-using Operators
+include("Operators.jl")
+using .Operators
 
 const C32 = Complex{Float32}
 

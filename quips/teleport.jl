@@ -1,4 +1,3 @@
-push!(LOAD_PATH, homedir()*"/Projects/QuIPS/src")
 
 using QuIPS
 
@@ -59,6 +58,3 @@ println("\nψ′′:\n")
 for i in QC.wfn println("  ", i) end
 
 println("\nm₃ = ", QC.out[3], "\n")
-
-
-
